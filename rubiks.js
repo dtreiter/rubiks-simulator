@@ -33,12 +33,12 @@
         this.mesh = new THREE.Mesh(this.geometry, this.material);
 
         this.mesh.position.set(position.x, position.y, position.z);
-        this.mesh.rotation.set(rotation.rx, rotation.ry, rotation.rz);
+        this.mesh.rotation.set(rotation.x, rotation.y, rotation.z);
 
         scene.add(this.mesh);
     }
 
-    function Piece(position, faces) {
+    function Piece(position, rotation, faces) {
         /**
          * @faces - an array of objects containing position and color.
          *   example:
@@ -53,62 +53,59 @@
          *       }
          *     ];
          */
-        this.x = position.x;
-        this.y = position.y;
-        this.z = position.z;
+        this.position = position;
+        this.rotation = rotation;
         this.tiles = new Array();
         this.makeTiles(faces);
+    }
+    Piece.prototype.setRotation = function(rotation) {
+        this.rotation = rotation;
     }
     Piece.prototype.makeTiles = function(faces) {
         faces.forEach(function(face) {
             /* The position of the tile's center. */
-            var tileX = this.x,
-                tileY = this.y,
-                tileZ = this.z;
+            var tilePosition = {
+                "x": this.position.x,
+                "y": this.position.y,
+                "z": this.position.z
+            };
 
             /* The orientation of the tile in Euler angles. */
-            var rx = 0,
-                ry = 0,
-                rz = 0;
+            var tileRotation = {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            };
 
             /* Calculate the position and rotation depending on
                which side the tile is on. */
             switch (face.side) {
                 case SIDE.TOP:
-                    tileZ = this.z + TILE_SIZE/2;
+                    tilePosition.z = this.position.z + TILE_SIZE/2;
                     break;
                 case SIDE.BOTTOM:
-                    tileZ = this.z - TILE_SIZE/2;
+                    tilePosition.z = this.position.z - TILE_SIZE/2;
                     break;
                 case SIDE.RIGHT:
-                    tileX = this.x + TILE_SIZE/2;
-                    ry = Math.PI/2;
+                    tilePosition.x = this.position.x + TILE_SIZE/2;
+                    tileRotation.y = Math.PI/2;
                     break;
                 case SIDE.LEFT:
-                    tileX = this.x - TILE_SIZE/2;
-                    ry = Math.PI/2;
+                    tilePosition.x = this.position.x - TILE_SIZE/2;
+                    tileRotation.y = Math.PI/2;
                     break;
                 case SIDE.FRONT:
-                    tileY = this.y + TILE_SIZE/2;
-                    rx = Math.PI/2;
+                    tilePosition.y = this.position.y + TILE_SIZE/2;
+                    tileRotation.x = Math.PI/2;
                     break;
                 case SIDE.BACK:
-                    tileY = this.y - TILE_SIZE/2;
-                    rx = Math.PI/2;
+                    tilePosition.y = this.position.y - TILE_SIZE/2;
+                    tileRotation.x = Math.PI/2;
                     break;
                 default:
                     console.log("Error: Invalid tile position");
             }
-            this.tiles = new Tile({
-                "x": tileX,
-                "y": tileY,
-                "z": tileZ
-            },
-            {
-                "rx": rx,
-                "ry": ry,
-                "rz": rz
-            }, face.color);
+            this.tiles.push(new Tile(tilePosition, tileRotation, face.color));
         }, this);
     }
 
@@ -137,12 +134,13 @@
         scene.add(directionalLight);
 
         var position = {"x": 0, "y": 0, "z": 0};
+        var rotation = {"x": 0, "y": 0, "z": 0};
         var faces = [
             {"side": SIDE.FRONT, "color": COLOR.RED},
             {"side": SIDE.BOTTOM, "color": COLOR.WHITE},
             {"side": SIDE.LEFT,  "color": COLOR.GREEN}
         ];
-        piece = new Piece(position, faces);
+        piece = new Piece(position, rotation, faces);
 
         gameLoop();
     }
